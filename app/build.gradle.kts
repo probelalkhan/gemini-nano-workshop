@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.belalkhan.gemininanoworkshop"
-        minSdk = 29
+        minSdk = 34
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -101,7 +101,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    //noinspection UseTomlInstead
     implementation("com.google.mlkit:genai-summarization:1.0.0-beta1")
+    //noinspection UseTomlInstead
+    implementation("com.google.mlkit:genai-image-description:1.0.0-beta1")
+    //noinspection UseTomlInstead
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
-
 }

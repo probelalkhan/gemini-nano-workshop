@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.belalkhan.gemininanoworkshop.ui.home.HomeScreen
+import dev.belalkhan.gemininanoworkshop.ui.home.imagedesc.ImageDescScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.summarization.SummarizationScreen
 
 @Composable
@@ -27,6 +28,7 @@ fun AppNavigation() {
         }
 
         composable(Feature.ImageDescription.route) {
+            ImageDescScreen(onBack = { navController.navigateUp() })
         }
     }
 }
