@@ -28,13 +28,6 @@ data class ImageDescState(
 ) {
     val downloadProgress: String
         get() = "Downloading $mbDownloaded of $mbToDownload MB..."
-
-    val actionButtonLabel: String
-        get() = when {
-            mbToDownload > 0.0 && mbDownloaded < mbToDownload -> "Downloading..."
-            isLoading -> "Summarizing..."
-            else -> "Summarize"
-        }
 }
 
 @HiltViewModel
