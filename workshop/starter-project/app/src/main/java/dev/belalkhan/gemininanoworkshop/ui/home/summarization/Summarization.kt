@@ -1,12 +1,16 @@
 package dev.belalkhan.gemininanoworkshop.ui.home.summarization
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.belalkhan.gemininanoworkshop.ui.theme.AppTheme
+import dev.belalkhan.gemininanoworkshop.ui.theme.DayNightPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
