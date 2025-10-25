@@ -247,7 +247,6 @@ fun SuggestionBubble(suggestion: String, onClick: () -> Unit) {
 
 @Composable
 fun MessageBubble(chatMessage: ChatMessage) {
-    val horizontalAlignment = if (chatMessage.isFromUser) Alignment.End else Alignment.Start
     val bubbleColor =
         if (chatMessage.isFromUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
 
