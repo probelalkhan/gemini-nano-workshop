@@ -1,11 +1,14 @@
 package dev.belalkhan.gemininanoworkshop.ui.home.rewrite
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.genai.common.DownloadCallback
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.common.GenAiException
 import com.google.mlkit.genai.rewriting.Rewriter
+import com.google.mlkit.genai.rewriting.RewriterOptions
+import com.google.mlkit.genai.rewriting.Rewriting
 import com.google.mlkit.genai.rewriting.RewritingRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.belalkhan.gemininanoworkshop.bytesToMB
@@ -14,29 +17,25 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class RewriteState(
-    val input: String = "",
+    val input: String = "The team needs to urgently fix this issue before the big product launch.",
     val messages: List<ChatMessage> = listOf(
         ChatMessage(
             "Hi there! Type a message and I'll give you some rewrite suggestions.",
             isFromUser = false
         )
     ),
-    val suggestions: List<String> = emptyList(),
+    val suggestion: String = "",
     val isLoading: Boolean = false,
     val mbToDownload: Double = 0.0,
     val mbDownloaded: Double = 0.0,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val selectedRewriteType: RewriteType = RewriteType.REPHRASE,
 ) {
     val downloadProgress: String
         get() = "Downloading $mbDownloaded of $mbToDownload MB..."
@@ -50,31 +49,14 @@ data class ChatMessage(
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class RewriteViewModel @Inject constructor(
-    private val rewriter: Rewriter
+    private val application: Application
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RewriteState())
     val state: StateFlow<RewriteState> = _state
     private var summarizationJob: Job? = null
 
-    private val _inputFlow = MutableStateFlow("")
-
-    init {
-        _inputFlow
-            .onEach { newValue ->
-                _state.update { it.copy(input = newValue) }
-            }
-            .debounce(500L)
-            .distinctUntilChanged()
-            .filter { it.split(" ").filter(String::isNotBlank).size > 3 }
-            .onEach { text ->
-                rewrite()
-            }
-            .launchIn(viewModelScope)
-    }
-
-
-    fun rewrite() {
+    fun rewrite(rewriter: Rewriter) {
         summarizationJob?.cancel()
 
         val currentState = _state.value
@@ -88,7 +70,7 @@ class RewriteViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isLoading = true,
-                suggestions = emptyList(),
+                suggestion = "",
                 errorMessage = null,
                 mbToDownload = 0.0,
                 mbDownloaded = 0.0
@@ -124,7 +106,7 @@ class RewriteViewModel @Inject constructor(
                             }
 
                             override fun onDownloadCompleted() {
-                                startRewritingSuggestions(text)
+                                startRewritingSuggestions(rewriter)
                             }
                         })
                     }
@@ -142,7 +124,7 @@ class RewriteViewModel @Inject constructor(
                         _state.update {
                             it.copy(mbToDownload = 0.0, mbDownloaded = 0.0)
                         }
-                        startRewritingSuggestions(text)
+                        startRewritingSuggestions(rewriter)
                     }
 
                 }
@@ -152,20 +134,24 @@ class RewriteViewModel @Inject constructor(
         }
     }
 
-    private fun startRewritingSuggestions(text: String) {
-        val request = RewritingRequest.builder(text).build()
-        rewriter.runInference(request) { newToken ->
-            _state.update { it.copy(suggestions = it.suggestions + newToken) }
-        }
+    fun onRewriteTypeSelected(rewriteType: RewriteType) {
+        summarizationJob?.cancel()
+        _state.update { it.copy(selectedRewriteType = rewriteType) }
+        val rewriterOptions = RewriterOptions.builder(application) // Use the injected context
+            .setOutputType(rewriteType.value)
+            .setLanguage(RewriterOptions.Language.ENGLISH)
+            .build()
+        rewrite(Rewriting.getClient(rewriterOptions))
     }
 
     fun onInputChange(input: String) {
-        _inputFlow.value = input
+        _state.update { it.copy(input = input) }
     }
 
-    fun clearSuggestions() {
-        _state.update {
-            it.copy(suggestions = emptyList(), errorMessage = null, isLoading = false)
+    private fun startRewritingSuggestions(rewriter: Rewriter) {
+        val request = RewritingRequest.builder(state.value.input).build()
+        rewriter.runInference(request) { newToken ->
+            _state.update { it.copy(isLoading = false, suggestion = it.suggestion + newToken) }
         }
     }
 

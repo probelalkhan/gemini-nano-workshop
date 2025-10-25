@@ -22,7 +22,7 @@ object RewriteModule {
     @Provides
     fun getRewriter(@ApplicationContext context: Context): Rewriter {
         val rewriterOptions = RewriterOptions.builder(context)
-            .setOutputType(RewriterOptions.OutputType.ELABORATE)
+            .setOutputType(RewriterOptions.OutputType.FRIENDLY)
             .setLanguage(RewriterOptions.Language.ENGLISH)
             .build()
         return Rewriting.getClient(rewriterOptions)
