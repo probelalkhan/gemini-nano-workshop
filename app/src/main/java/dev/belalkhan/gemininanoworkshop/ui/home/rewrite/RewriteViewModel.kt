@@ -55,12 +55,29 @@ class RewriteViewModel @Inject constructor(
     private val _state = MutableStateFlow(RewriteState())
     val state: StateFlow<RewriteState> = _state
     private var summarizationJob: Job? = null
+    private var rewriter: Rewriter? = null
 
-    fun rewrite(rewriter: Rewriter) {
+    private fun getRewriter(rewriteType: RewriteType): Rewriter {
+        rewriter?.close()
+        val rewriterOptions = RewriterOptions.builder(application)
+            .setOutputType(rewriteType.value)
+            .setLanguage(RewriterOptions.Language.ENGLISH)
+            .build()
+        return Rewriting.getClient(rewriterOptions).also { rewriter = it }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        rewriter?.close()
+    }
+
+    fun rewrite() {
         summarizationJob?.cancel()
 
         val currentState = _state.value
         val text = currentState.input.trim()
+        val currentRewriter = rewriter ?: getRewriter(currentState.selectedRewriteType)
+
 
         if (currentState.isLoading || text.isBlank()) {
             if (text.isBlank()) setError("Input is empty.")
@@ -79,13 +96,13 @@ class RewriteViewModel @Inject constructor(
 
         summarizationJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                when (val status = rewriter.checkFeatureStatus().await()) {
+                when (val status = currentRewriter.checkFeatureStatus().await()) {
                     FeatureStatus.UNAVAILABLE -> {
                         setError("Summarization feature is not available on this device.")
                     }
 
                     FeatureStatus.DOWNLOADABLE -> {
-                        rewriter.downloadFeature(object : DownloadCallback {
+                        currentRewriter.downloadFeature(object : DownloadCallback {
                             override fun onDownloadStarted(bytesToDownload: Long) {
                                 _state.update {
                                     it.copy(
@@ -106,7 +123,7 @@ class RewriteViewModel @Inject constructor(
                             }
 
                             override fun onDownloadCompleted() {
-                                startRewritingSuggestions(rewriter)
+                                startRewritingSuggestions(currentRewriter)
                             }
                         })
                     }
@@ -124,7 +141,7 @@ class RewriteViewModel @Inject constructor(
                         _state.update {
                             it.copy(mbToDownload = 0.0, mbDownloaded = 0.0)
                         }
-                        startRewritingSuggestions(rewriter)
+                        startRewritingSuggestions(currentRewriter)
                     }
 
                 }
@@ -137,11 +154,8 @@ class RewriteViewModel @Inject constructor(
     fun onRewriteTypeSelected(rewriteType: RewriteType) {
         summarizationJob?.cancel()
         _state.update { it.copy(selectedRewriteType = rewriteType) }
-        val rewriterOptions = RewriterOptions.builder(application) // Use the injected context
-            .setOutputType(rewriteType.value)
-            .setLanguage(RewriterOptions.Language.ENGLISH)
-            .build()
-        rewrite(Rewriting.getClient(rewriterOptions))
+        getRewriter(rewriteType)
+        rewrite()
     }
 
     fun onInputChange(input: String) {
