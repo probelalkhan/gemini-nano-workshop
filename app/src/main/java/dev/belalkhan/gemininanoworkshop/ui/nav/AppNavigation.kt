@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.belalkhan.gemininanoworkshop.ui.home.HomeScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.imagedesc.ImageDescScreen
+import dev.belalkhan.gemininanoworkshop.ui.home.proofread.ProofReadingScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.rewrite.RewriteScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.summarization.SummarizationScreen
 
@@ -23,6 +24,7 @@ fun AppNavigation() {
         }
 
         composable(Feature.Proofreading.route) {
+            ProofReadingScreen(onBack = { navController.navigateUp() })
         }
 
         composable(Feature.Rewrite.route) {

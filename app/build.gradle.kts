@@ -108,5 +108,7 @@ dependencies {
     //noinspection UseTomlInstead
     implementation("com.google.mlkit:genai-rewriting:1.0.0-beta1")
     //noinspection UseTomlInstead
+    implementation("com.google.mlkit:genai-proofreading:1.0.0-beta1")
+    //noinspection UseTomlInstead
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
 }
