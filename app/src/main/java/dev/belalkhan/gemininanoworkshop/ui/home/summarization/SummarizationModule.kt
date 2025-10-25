@@ -18,7 +18,7 @@ object SummarizationModule {
     fun getSummarizer(@ApplicationContext context: Context): Summarizer {
         val summarizerOptions = SummarizerOptions.builder(context)
             .setInputType(SummarizerOptions.InputType.ARTICLE)
-            .setOutputType(SummarizerOptions.OutputType.ONE_BULLET)
+            .setOutputType(SummarizerOptions.OutputType.THREE_BULLETS)
             .setLanguage(SummarizerOptions.Language.ENGLISH)
             .build()
         return Summarization.getClient(summarizerOptions)

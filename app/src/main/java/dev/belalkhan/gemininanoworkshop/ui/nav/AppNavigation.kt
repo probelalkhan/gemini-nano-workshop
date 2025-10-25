@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.belalkhan.gemininanoworkshop.ui.home.HomeScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.imagedesc.ImageDescScreen
+import dev.belalkhan.gemininanoworkshop.ui.home.rewrite.RewriteScreen
 import dev.belalkhan.gemininanoworkshop.ui.home.summarization.SummarizationScreen
 
 @Composable
@@ -25,6 +26,7 @@ fun AppNavigation() {
         }
 
         composable(Feature.Rewrite.route) {
+            RewriteScreen(onBack = { navController.navigateUp() })
         }
 
         composable(Feature.ImageDescription.route) {
